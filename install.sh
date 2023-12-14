@@ -12,15 +12,6 @@ LOG_FILE="$HOME_DIR/install.log"
 LOCAL_TMP="$HOME_DIR/sources/local-tmp"
 mkdir -p $LOCAL_TMP
 
-HAS_GPU="true"
-
-
-OPUS_VER="opus-1.4"
-LIBAOM_VER="v3.7.0"
-LIBOGG_VER="libogg-1.3.5"
-LIBVORBIS_VER="libvorbis-1.3.7"
-LIBASS_URL=$(curl -s "https://api.github.com/repos/libass/libass/releases/latest" | awk -F'"' '/browser_download_url.*.tar.gz"/{print $4}')
-
 # Create source directory
 mkdir -p $SRC_DIR
 cd $SRC_DIR
@@ -96,18 +87,6 @@ install_ffmpeg_prereqs() {
         make install
     cd ..
     check_installation "$USR_LOCAL_PREFIX/lib/libx264.so" "X264"
-
-    # Install X265 (H.265 Codec)
-    git clone https://bitbucket.org/multicoreware/x265_git.git &&
-        cd x265_git/build/linux &&
-        cmake -G "Unix Makefiles" \
-            -DCMAKE_INSTALL_PREFIX="$USR_LOCAL_PREFIX" \
-            -DBUILD_SHARED_LIBS=ON \
-            ../../source &&
-        make -j $CPUS &&
-        make install
-    cd ..
-    check_installation "$USR_LOCAL_PREFIX/lib/libx265.so" "X265"
 }
 
 install_ffmpeg() {
@@ -129,7 +108,6 @@ install_ffmpeg() {
             --bindir="$USR_LOCAL_PREFIX/bin" \
             --enable-gpl \
             --enable-libx264 \
-            --enable-libx265 \
             --enable-nonfree \
             --enable-openssl \
             $NVIDIA_FFMPEG_OPTS &&
