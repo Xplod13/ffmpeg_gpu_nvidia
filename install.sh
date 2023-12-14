@@ -79,19 +79,6 @@ install_utils() {
 }
 
 install_ffmpeg_prereqs() {
-    # Install LIBAOM (AV1 Codec Library)
-    mkdir -p libaom &&
-        cd libaom &&
-        git -c advice.detachedHead=false clone --depth 1 --branch $LIBAOM_VER https://aomedia.googlesource.com/aom &&
-        cmake \
-            -DBUILD_SHARED_LIBS=ON \
-            -DENABLE_DOCS=OFF \
-            -DCMAKE_INSTALL_LIBDIR=lib \
-            -DCMAKE_INSTALL_PREFIX:PATH=$USR_LOCAL_PREFIX ./aom &&
-        make -j $CPUS &&
-        make install
-    cd ..
-    check_installation "$USR_LOCAL_PREFIX/lib/libaom.so" "LIBAOM"
 
     if [ "$HAS_GPU" == "true" ]; then
         # Install ffnvcodec FFmpeg with NVIDIA GPU acceleration
@@ -101,83 +88,6 @@ install_ffmpeg_prereqs() {
         cd ..
         check_installation "$USR_LOCAL_PREFIX/include/ffnvcodec/nvEncodeAPI.h" "Nvidia ffnvcodec"
     fi
-
-    # Install LIBASS (portable subtitle renderer)
-    $DOWNLOAD ${LIBASS_URL} &&
-        tar -zxf libass*.tar.gz &&
-        cd "libass*" &&
-        ./configure --prefix="$USR_LOCAL_PREFIX" &&
-        make -j $CPUS &&
-        make install
-    cd ..
-    check_installation "$USR_LOCAL_PREFIX/lib/libass.so" "LIBASS"
-
-    # Install libmp3lame (MP3 Encoder)
-    curl -L https://sourceforge.net/projects/lame/files/latest/download -o lame.tar.gz &&
-        tar xzvf lame.tar.gz &&
-        cd "lame*" &&
-        ./configure --prefix="$USR_LOCAL_PREFIX" \
-            --bindir="/usr/bin" \
-            --enable-nasm &&
-        make -j $CPUS &&
-        make install
-    cd ..
-    check_installation "$USR_LOCAL_PREFIX/lib/libmp3lame.so" "libmp3lame"
-
-    # Install opus video codec
-    $DOWNLOAD https://ftp.osuosl.org/pub/xiph/releases/opus/$OPUS_VER.tar.gz &&
-        tar xzvf $OPUS_VER.tar.gz &&
-        cd $OPUS_VER &&
-        ./configure --prefix="$USR_LOCAL_PREFIX" &&
-        make -j $CPUS &&
-        make install
-    cd ..
-    check_installation "$USR_LOCAL_PREFIX/lib/libopus.so" "opus"
-
-    # Install libogg (OGG Container format)
-    $DOWNLOAD http://downloads.xiph.org/releases/ogg/$LIBOGG_VER.tar.gz &&
-        tar xzvf $LIBOGG_VER.tar.gz &&
-        cd $LIBOGG_VER &&
-        ./configure --prefix="$USR_LOCAL_PREFIX" &&
-        make -j $CPUS &&
-        make install
-    cd ..
-    check_installation "$USR_LOCAL_PREFIX/lib/libogg.so" "libogg"
-    ldconfig
-
-    # Install libvorbis (vorbis audio codec)
-    $DOWNLOAD http://downloads.xiph.org/releases/vorbis/$LIBVORBIS_VER.tar.gz &&
-        tar xzvf $LIBVORBIS_VER.tar.gz &&
-        cd $LIBVORBIS_VER &&
-        ./configure --prefix="$USR_LOCAL_PREFIX" \
-            --with-ogg="$USR_LOCAL_PREFIX" &&
-        make -j $CPUS &&
-        make install
-    cd ..
-    check_installatsetup_gpu
-ion "$USR_LOCAL_PREFIX/lib/libvorbis.so" "libvorbis"
-
-    # Install FDKAAC (AAC audio codec)
-    git clone --depth 1 https://github.com/mstorsjo/fdk-aac &&
-        cd fdk-aac &&
-        autoreconf -fiv &&
-        ./configure --prefix="$USR_LOCAL_PREFIX" &&
-        make -j $CPUS &&
-        make install
-    cd ..
-    check_installation "$USR_LOCAL_PREFIX/lib/libfdk-aac.so" "FDKAAC"
-
-    # Install WEBM
-    git clone --depth 1 https://chromium.googlesource.com/webm/libvpx.git &&
-        cd libvpx &&
-        ./configure --prefix="$USR_LOCAL_PREFIX" \
-            --disable-static --enable-shared \
-            --disable-examples --disable-unit-tests \
-            --enable-vp9-highbitdepth --as=yasm &&
-        make -j $CPUS &&
-        make install
-    cd ..
-    check_installation "$USR_LOCAL_PREFIX/lib/libvpx.so" "WEBM"
 
     # Install X264 (H.264 Codec)
     git clone --depth 1 https://code.videolan.org/videolan/x264.git &&
@@ -224,14 +134,6 @@ install_ffmpeg() {
             --extra-libs='-lpthread -lm' \
             --bindir="$USR_LOCAL_PREFIX/bin" \
             --enable-gpl \
-            --enable-libaom \
-            --enable-libass \
-            --enable-libfdk-aac \
-            --enable-libfreetype \
-            --enable-libmp3lame \
-            --enable-libopus \
-            --enable-libvorbis \
-            --enable-libvpx \
             --enable-libx264 \
             --enable-libx265 \
             --enable-nonfree \
