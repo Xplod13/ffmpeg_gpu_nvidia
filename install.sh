@@ -84,18 +84,9 @@ install_utils() {
 
 # Setup GPU, CUDA and CUDNN
 setup_gpu() {
-    if [ "$HAS_GPU" != "true" ]; then
-        echo "Skipping GPU installation"
-        return 0
-    fi
-    if [ "$(uname -m)" = "aarch64" ]; then
-        echo "System is running on ARM / AArch64"
-        CUDA_SDK_URL="https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda_12.2.2_535.104.05_linux_sbsa.run"
-        CUDNN_ARCHIVE_URL="https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-sbsa/cudnn-linux-sbsa-8.9.5.29_cuda12-archive.tar.xz"
-    else
-        CUDA_SDK_URL="https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda_12.2.2_535.104.05_linux.run"
-        CUDNN_ARCHIVE_URL="https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.5.29_cuda12-archive.tar.xz"
-    fi
+    CUDA_SDK_URL="https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda_12.2.2_535.104.05_linux.run"
+    CUDNN_ARCHIVE_URL="https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.5.29_cuda12-archive.tar.xz"
+
 
     CUDA_SDK="cuda-linux.run"
     wget -O "$CUDA_SDK" "$CUDA_SDK_URL"
@@ -192,7 +183,8 @@ install_ffmpeg_prereqs() {
         make -j $CPUS &&
         make install
     popd
-    check_installation "$USR_LOCAL_PREFIX/lib/libvorbis.so" "libvorbis"
+    check_installatsetup_gpu
+ion "$USR_LOCAL_PREFIX/lib/libvorbis.so" "libvorbis"
 
     # Install FDKAAC (AAC audio codec)
     git clone --depth 1 https://github.com/mstorsjo/fdk-aac &&
@@ -284,7 +276,6 @@ install_ffmpeg() {
 
 # Execute Functions
 install_utils
-setup_gpu
 . $HOME_DIR/.bashrc
 install_ffmpeg_prereqs
 install_ffmpeg
