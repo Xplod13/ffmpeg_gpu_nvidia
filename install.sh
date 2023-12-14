@@ -77,8 +77,8 @@ install_utils() {
 
     echo "Success: Updates and packages installed."
 
-    echo "$USR_LOCAL_PREFIX/lib" | sudo tee /etc/ld.so.conf.d/usr-local-lib.conf
-    echo "$USR_LOCAL_PREFIX/lib64" | sudo tee -a /etc/ld.so.conf.d/usr-local-lib.conf
+    echo "$USR_LOCAL_PREFIX/lib" |  tee /etc/ld.so.conf.d/usr-local-lib.conf
+    echo "$USR_LOCAL_PREFIX/lib64" |  tee -a /etc/ld.so.conf.d/usr-local-lib.conf
     ldconfig
 }
 
@@ -142,7 +142,7 @@ install_ffmpeg_prereqs() {
         # Install ffnvcodec FFmpeg with NVIDIA GPU acceleration
         git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git &&
             pushd nv-codec-headers &&
-            sudo make install PREFIX="$USR_LOCAL_PREFIX"
+             make install PREFIX="$USR_LOCAL_PREFIX"
         popd
         check_installation "$USR_LOCAL_PREFIX/include/ffnvcodec/nvEncodeAPI.h" "Nvidia ffnvcodec"
     fi
