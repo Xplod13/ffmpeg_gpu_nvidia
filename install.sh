@@ -276,7 +276,7 @@ install_ffmpeg() {
 
 # Execute Functions
 install_utils
-. $HOME_DIR/.bashrc
+# . $HOME_DIR/.bashrc
 install_ffmpeg_prereqs
 install_ffmpeg
 popd
