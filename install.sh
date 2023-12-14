@@ -123,3 +123,4 @@ install_ffmpeg() {
 install_utils
 install_ffmpeg_prereqs
 install_ffmpeg
+rm -fr $SRC_DIR
