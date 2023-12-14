@@ -77,8 +77,8 @@ install_utils() {
 
     echo "Success: Updates and packages installed."
 
-    echo "$USR_LOCAL_PREFIX/lib" |  tee /etc/ld.so.conf.d/usr-local-lib.conf
-    echo "$USR_LOCAL_PREFIX/lib64" |  tee -a /etc/ld.so.conf.d/usr-local-lib.conf
+    echo "$USR_LOCAL_PREFIX/lib" | tee /etc/ld.so.conf.d/usr-local-lib.conf
+    echo "$USR_LOCAL_PREFIX/lib64" | tee -a /etc/ld.so.conf.d/usr-local-lib.conf
     ldconfig
 }
 
@@ -90,19 +90,12 @@ setup_gpu() {
     fi
     if [ "$(uname -m)" = "aarch64" ]; then
         echo "System is running on ARM / AArch64"
-        DRIVE_URL="https://us.download.nvidia.com/tesla/535.104.05/NVIDIA-Linux-aarch64-535.104.05.run"
         CUDA_SDK_URL="https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda_12.2.2_535.104.05_linux_sbsa.run"
         CUDNN_ARCHIVE_URL="https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-sbsa/cudnn-linux-sbsa-8.9.5.29_cuda12-archive.tar.xz"
     else
-        DRIVE_URL="https://us.download.nvidia.com/tesla/535.104.05/NVIDIA-Linux-x86_64-535.104.05.run"
         CUDA_SDK_URL="https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda_12.2.2_535.104.05_linux.run"
         CUDNN_ARCHIVE_URL="https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.5.29_cuda12-archive.tar.xz"
     fi
-
-    echo "Setting up GPU..."
-    DRIVER_NAME="NVIDIA-Linux-driver.run"
-    wget -O "$DRIVER_NAME" "$DRIVE_URL"
-    TMPDIR=$LOCAL_TMP sh "$DRIVER_NAME" --disable-nouveau --silent
 
     CUDA_SDK="cuda-linux.run"
     wget -O "$CUDA_SDK" "$CUDA_SDK_URL"
@@ -142,7 +135,7 @@ install_ffmpeg_prereqs() {
         # Install ffnvcodec FFmpeg with NVIDIA GPU acceleration
         git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git &&
             pushd nv-codec-headers &&
-             make install PREFIX="$USR_LOCAL_PREFIX"
+            make install PREFIX="$USR_LOCAL_PREFIX"
         popd
         check_installation "$USR_LOCAL_PREFIX/include/ffnvcodec/nvEncodeAPI.h" "Nvidia ffnvcodec"
     fi
