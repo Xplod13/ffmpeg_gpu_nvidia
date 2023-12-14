@@ -80,14 +80,10 @@ install_utils() {
 
 install_ffmpeg_prereqs() {
 
-    if [ "$HAS_GPU" == "true" ]; then
         # Install ffnvcodec FFmpeg with NVIDIA GPU acceleration
-        git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git &&
-            cd nv-codec-headers &&
-            make install PREFIX="$USR_LOCAL_PREFIX"
-        cd ..
-        check_installation "$USR_LOCAL_PREFIX/include/ffnvcodec/nvEncodeAPI.h" "Nvidia ffnvcodec"
-    fi
+    git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git && cd nv-codec-headers && make install PREFIX="$USR_LOCAL_PREFIX"
+    cd ..
+    check_installation "$USR_LOCAL_PREFIX/include/ffnvcodec/nvEncodeAPI.h" "Nvidia ffnvcodec"
 
     # Install X264 (H.264 Codec)
     git clone --depth 1 https://code.videolan.org/videolan/x264.git &&
@@ -115,11 +111,9 @@ install_ffmpeg_prereqs() {
 }
 
 install_ffmpeg() {
-    if [ "$HAS_GPU" == "true" ]; then
-        NVIDIA_CFLAGS="-I$CUDA_HOME/include"
-        NVIDIA_LDFLAGS="-L$CUDA_HOME/lib64"
-        NVIDIA_FFMPEG_OPTS="--enable-cuda-nvcc --nvcc=$CUDA_HOME/bin/nvcc --enable-cuda --enable-cuvid --enable-nvenc"
-    fi
+    NVIDIA_CFLAGS="-I$CUDA_HOME/include"
+    NVIDIA_LDFLAGS="-L$CUDA_HOME/lib64"
+    NVIDIA_FFMPEG_OPTS="--enable-cuda-nvcc --nvcc=$CUDA_HOME/bin/nvcc --enable-cuda --enable-cuvid --enable-nvenc"
 
     # Install FFMPEG (AV1 Codec Library)
     $DOWNLOAD https://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 &&
