@@ -46,10 +46,6 @@ check_exit_code() {
         exit 1
     fi
 }
-# Utility function to push a wildcard
-pushdw() {
-    pushd "$(find $HOME_DIR -type d -name "$1" | head -n 1)"
-}
 
 # Install system utilities and updates
 install_utils() {
@@ -82,35 +78,10 @@ install_utils() {
     ldconfig
 }
 
-# Setup GPU, CUDA and CUDNN
-setup_gpu() {
-    CUDA_SDK_URL="https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda_12.2.2_535.104.05_linux.run"
-    CUDNN_ARCHIVE_URL="https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.5.29_cuda12-archive.tar.xz"
-
-
-    CUDA_SDK="cuda-linux.run"
-    wget -O "$CUDA_SDK" "$CUDA_SDK_URL"
-    TMPDIR=$LOCAL_TMP sh "$CUDA_SDK" --silent --override --toolkit --samples --toolkitpath=$USR_LOCAL_PREFIX/cuda-12.2 --samplespath=$CUDA_HOME --no-opengl-libs
-
-    CUDNN_ARCHIVE="cudnn-linux.tar.xz"
-    EXTRACT_PATH="$SRC_DIR/cudnn-extracted"
-    mkdir -p "$EXTRACT_PATH"
-
-    wget -O "$CUDNN_ARCHIVE" "$CUDNN_ARCHIVE_URL"
-    tar -xJf "$CUDNN_ARCHIVE" -C "$EXTRACT_PATH"
-    CUDNN_INCLUDE=$(find "$EXTRACT_PATH" -type d -name "include" -print -quit)
-    CUDNN_LIB=$(find "$EXTRACT_PATH" -type d -name "lib" -print -quit)
-    cp -P "$CUDNN_INCLUDE"/* $CUDA_HOME/include/
-    cp -P "$CUDNN_LIB"/* $CUDA_HOME/lib64/
-    chmod a+r $CUDA_HOME/lib64/*
-    ldconfig
-    rm -fr cu* NVIDIA*
-}
-
 install_ffmpeg_prereqs() {
     # Install LIBAOM (AV1 Codec Library)
     mkdir -p libaom &&
-        pushd libaom &&
+        cd libaom &&
         git -c advice.detachedHead=false clone --depth 1 --branch $LIBAOM_VER https://aomedia.googlesource.com/aom &&
         cmake \
             -DBUILD_SHARED_LIBS=ON \
@@ -119,117 +90,117 @@ install_ffmpeg_prereqs() {
             -DCMAKE_INSTALL_PREFIX:PATH=$USR_LOCAL_PREFIX ./aom &&
         make -j $CPUS &&
         make install
-    popd
+    cd ..
     check_installation "$USR_LOCAL_PREFIX/lib/libaom.so" "LIBAOM"
 
     if [ "$HAS_GPU" == "true" ]; then
         # Install ffnvcodec FFmpeg with NVIDIA GPU acceleration
         git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git &&
-            pushd nv-codec-headers &&
+            cd nv-codec-headers &&
             make install PREFIX="$USR_LOCAL_PREFIX"
-        popd
+        cd ..
         check_installation "$USR_LOCAL_PREFIX/include/ffnvcodec/nvEncodeAPI.h" "Nvidia ffnvcodec"
     fi
 
     # Install LIBASS (portable subtitle renderer)
     $DOWNLOAD ${LIBASS_URL} &&
         tar -zxf libass*.tar.gz &&
-        pushdw "libass*" &&
+        cd "libass*" &&
         ./configure --prefix="$USR_LOCAL_PREFIX" &&
         make -j $CPUS &&
         make install
-    popd
+    cd ..
     check_installation "$USR_LOCAL_PREFIX/lib/libass.so" "LIBASS"
 
     # Install libmp3lame (MP3 Encoder)
     curl -L https://sourceforge.net/projects/lame/files/latest/download -o lame.tar.gz &&
         tar xzvf lame.tar.gz &&
-        pushdw "lame*" &&
+        cd "lame*" &&
         ./configure --prefix="$USR_LOCAL_PREFIX" \
             --bindir="/usr/bin" \
             --enable-nasm &&
         make -j $CPUS &&
         make install
-    popd
+    cd ..
     check_installation "$USR_LOCAL_PREFIX/lib/libmp3lame.so" "libmp3lame"
 
     # Install opus video codec
     $DOWNLOAD https://ftp.osuosl.org/pub/xiph/releases/opus/$OPUS_VER.tar.gz &&
         tar xzvf $OPUS_VER.tar.gz &&
-        pushd $OPUS_VER &&
+        cd $OPUS_VER &&
         ./configure --prefix="$USR_LOCAL_PREFIX" &&
         make -j $CPUS &&
         make install
-    popd
+    cd ..
     check_installation "$USR_LOCAL_PREFIX/lib/libopus.so" "opus"
 
     # Install libogg (OGG Container format)
     $DOWNLOAD http://downloads.xiph.org/releases/ogg/$LIBOGG_VER.tar.gz &&
         tar xzvf $LIBOGG_VER.tar.gz &&
-        pushd $LIBOGG_VER &&
+        cd $LIBOGG_VER &&
         ./configure --prefix="$USR_LOCAL_PREFIX" &&
         make -j $CPUS &&
         make install
-    popd
+    cd ..
     check_installation "$USR_LOCAL_PREFIX/lib/libogg.so" "libogg"
     ldconfig
 
     # Install libvorbis (vorbis audio codec)
     $DOWNLOAD http://downloads.xiph.org/releases/vorbis/$LIBVORBIS_VER.tar.gz &&
         tar xzvf $LIBVORBIS_VER.tar.gz &&
-        pushd $LIBVORBIS_VER &&
+        cd $LIBVORBIS_VER &&
         ./configure --prefix="$USR_LOCAL_PREFIX" \
             --with-ogg="$USR_LOCAL_PREFIX" &&
         make -j $CPUS &&
         make install
-    popd
+    cd ..
     check_installatsetup_gpu
 ion "$USR_LOCAL_PREFIX/lib/libvorbis.so" "libvorbis"
 
     # Install FDKAAC (AAC audio codec)
     git clone --depth 1 https://github.com/mstorsjo/fdk-aac &&
-        pushd fdk-aac &&
+        cd fdk-aac &&
         autoreconf -fiv &&
         ./configure --prefix="$USR_LOCAL_PREFIX" &&
         make -j $CPUS &&
         make install
-    popd
+    cd ..
     check_installation "$USR_LOCAL_PREFIX/lib/libfdk-aac.so" "FDKAAC"
 
     # Install WEBM
     git clone --depth 1 https://chromium.googlesource.com/webm/libvpx.git &&
-        pushd libvpx &&
+        cd libvpx &&
         ./configure --prefix="$USR_LOCAL_PREFIX" \
             --disable-static --enable-shared \
             --disable-examples --disable-unit-tests \
             --enable-vp9-highbitdepth --as=yasm &&
         make -j $CPUS &&
         make install
-    popd
+    cd ..
     check_installation "$USR_LOCAL_PREFIX/lib/libvpx.so" "WEBM"
 
     # Install X264 (H.264 Codec)
     git clone --depth 1 https://code.videolan.org/videolan/x264.git &&
-        pushd x264 &&
+        cd x264 &&
         PKG_CONFIG_PATH="$USR_LOCAL_PREFIX/lib/pkgconfig" ./configure \
             --enable-shared --disable-static \
             --prefix="$USR_LOCAL_PREFIX" \
             --bindir="/usr/bin" &&
         make -j $CPUS &&
         make install
-    popd
+    cd ..
     check_installation "$USR_LOCAL_PREFIX/lib/libx264.so" "X264"
 
     # Install X265 (H.265 Codec)
     git clone https://bitbucket.org/multicoreware/x265_git.git &&
-        pushd x265_git/build/linux &&
+        cd x265_git/build/linux &&
         cmake -G "Unix Makefiles" \
             -DCMAKE_INSTALL_PREFIX="$USR_LOCAL_PREFIX" \
             -DBUILD_SHARED_LIBS=ON \
             ../../source &&
         make -j $CPUS &&
         make install
-    popd
+    cd ..
     check_installation "$USR_LOCAL_PREFIX/lib/libx265.so" "X265"
 }
 
@@ -243,7 +214,7 @@ install_ffmpeg() {
     # Install FFMPEG (AV1 Codec Library)
     $DOWNLOAD https://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 &&
         tar -jxf ffmpeg-snapshot.tar.bz2 &&
-        pushd ffmpeg &&
+        cd ffmpeg &&
         PKG_CONFIG_PATH="$USR_LOCAL_PREFIX/lib/pkgconfig:/usr/lib64/pkgconfig:/usr/share/pkgconfig:/usr/lib/pkgconfig:$USR_LOCAL_PREFIX/lib/pkgconfig" \
             ./configure \
             --prefix="$USR_LOCAL_PREFIX" \
@@ -268,7 +239,7 @@ install_ffmpeg() {
             $NVIDIA_FFMPEG_OPTS &&
         make -j $CPUS &&
         make install
-    popd
+    cd ..
     check_installation "$USR_LOCAL_PREFIX/bin/ffmpeg" "ffmpeg"
     check_installation "$USR_LOCAL_PREFIX/bin/ffprobe" "ffprobe"
     ldconfig
@@ -276,8 +247,5 @@ install_ffmpeg() {
 
 # Execute Functions
 install_utils
-# . $HOME_DIR/.bashrc
 install_ffmpeg_prereqs
 install_ffmpeg
-popd
-rm -fr $SRC_DIR
